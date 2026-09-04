@@ -1,20 +1,39 @@
+# ── Stage 1: builder ──────────────────────────────────────────────────────────
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+
+WORKDIR /app
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+# Install deps first (cache layer)
+COPY pyproject.toml uv.lock* ./
+RUN uv sync --frozen --no-install-project --no-dev 2>/dev/null || uv sync --no-dev
+
+# Copy source and sync again
+COPY . .
+RUN uv sync --frozen --no-dev 2>/dev/null || uv sync --no-dev
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system deps
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
-COPY pyproject.toml .
-RUN pip install --no-cache-dir -e .
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app /app
 
-# Copy source
-COPY . .
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Run Alembic migration then start server
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health || exit 1
+
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"]
