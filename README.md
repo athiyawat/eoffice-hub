@@ -157,16 +157,14 @@ uv run --with cryptography python -c "from cryptography.fernet import Fernet; pr
 ```bash
 cd backend
 
-# สร้าง venv + install deps (dev extras)
-uv venv
-source .venv/bin/activate
-uv pip install -e ".[dev]"
+# install deps
+uv sync
 
 # รัน migration
-alembic upgrade head
+uv run alembic upgrade head
 
 # start dev server (hot-reload)
-uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
 </td><td>
@@ -174,27 +172,22 @@ uvicorn app.main:app --reload --port 8000
 ```powershell
 cd backend
 
-# สร้าง venv + install deps (dev extras)
-uv venv
-.venv\Scripts\Activate.ps1
-uv pip install -e ".[dev]"
+# install deps
+uv sync
 
 # รัน migration
-alembic upgrade head
+uv run alembic upgrade head
 
 # start dev server (hot-reload)
-uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
 </td></tr>
 </table>
 
-> ⚡ **ทางลัด** — ไม่ต้อง activate venv เลย ใช้ `uv run` นำหน้าได้ทุกคำสั่ง (ทั้ง Mac/Windows):
+> ⚡ **ทางลัด** — `uv sync` จัดการ venv ให้อัตโนมัติ ไม่ต้อง activate:
 > ```bash
-> cd backend
-> uv venv && uv pip install -e ".[dev]"
-> uv run alembic upgrade head
-> uv run uvicorn app.main:app --reload --port 8000
+> cd backend && uv sync && uv run alembic upgrade head && uv run uvicorn app.main:app --reload --port 8000
 > ```
 
 #### ⚛️ Frontend (Next.js) — เหมือนกันทั้ง Mac/Windows
@@ -301,7 +294,7 @@ docker compose down                # หยุดการทำงาน
 
 | ปัญหา | วิธีแก้ |
 |-------|---------|
-| `psycopg2` build ล้มเหลว (macOS) | ติดตั้ง libpq: `brew install postgresql@16` แล้วลอง `uv pip install -e .` ใหม่ |
+| `psycopg2` build ล้มเหลว (macOS) | ติดตั้ง libpq: `brew install postgresql@16` แล้วลอง `uv sync` ใหม่ |
 | `pg_config not found` (Windows) | ในโปรเจคใช้ `psycopg2-binary` อยู่แล้ว ตรวจสอบว่าไม่ได้เผลอลง `psycopg2` ตัวเต็ม |
 | Port 8000 / 3000 ชน | macOS: `lsof -ti:8000 \| xargs kill -9`<br/>Windows: `netstat -ano \| findstr :8000` แล้วสั่ง `taskkill /PID <pid> /F` |
 | `Activate.ps1 cannot be loaded` (Windows) | รัน `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` หรือใช้ `uv run` นำหน้าคำสั่ง |
