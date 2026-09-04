@@ -302,3 +302,7 @@ docker compose down                # หยุดการทำงาน
 | ไม่สามารถเชื่อมต่อ DB ได้ | ตรวจสอบค่า `OPENCLAW_PG_URL` และตรวจว่า network เข้าถึงเครื่อง DB (`192.168.111.6:35432`) ได้ |
 | แจ้งเตือน CRLF/LF ตอน commit (Windows) | รัน `git config --global core.autocrlf true` |
 | ไม่พบคำสั่ง `uv` หลังติดตั้ง | ปิด-เปิด Terminal ใหม่ หรือเพิ่ม directory ใน PATH ให้ถูกต้อง |
+
+---
+
+> 🤝 ต้องการ contribute? อ่าน **[CONTRIBUTING.md](./CONTRIBUTING.md)** — branch naming, commit convention, PR checklist, และข้อปฏิบัติ Alembic migration
