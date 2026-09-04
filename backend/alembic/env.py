@@ -3,7 +3,7 @@ import os
 from logging.config import fileConfig
 
 from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import async_engine_from_config, create_async_engine
 
 from alembic import context
 
@@ -16,8 +16,8 @@ from app.models import config_model, schedule_model, run_log_model  # noqa: F401
 config = context.config
 fileConfig(config.config_file_name)
 
-# Override sqlalchemy.url from settings
-config.set_main_option("sqlalchemy.url", settings.OPENCLAW_PG_URL.replace("+asyncpg", ""))
+# Override sqlalchemy.url from settings (must be async driver e.g. postgresql+asyncpg://)
+config.set_main_option("sqlalchemy.url", settings.async_pg_url)
 
 target_metadata = Base.metadata
 
@@ -41,9 +41,8 @@ def do_run_migrations(connection):
 
 
 async def run_async_migrations() -> None:
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    connectable = create_async_engine(
+        settings.async_pg_url,
         poolclass=pool.NullPool,
     )
     async with connectable.connect() as connection:
